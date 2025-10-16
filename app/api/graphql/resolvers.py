@@ -56,8 +56,13 @@ class Query:
         Returns:
             List of product data records
         """
-        products = product_repository.get_all(limit=limit, offset=offset)
-        return [product_data_to_graphql(p) for p in products]
+        try:
+            products = product_repository.get_all(limit=limit, offset=offset)
+            return [product_data_to_graphql(p) for p in products]
+        except Exception as e:
+            # Log the error and return empty list rather than crashing
+            print(f"Error fetching products: {str(e)}")
+            return []
 
     @strawberry.field(description="Search and filter product data")
     def search_products(
@@ -73,22 +78,27 @@ class Query:
         Returns:
             List of filtered product data records
         """
-        if filter is None:
-            filter = ProductFilterInput()
-        
-        # Convert GraphQL input to model filter
-        model_filter = ProductDataFilter(
-            date=filter.date,
-            client_id=filter.client_id,
-            brand=filter.brand,
-            sku=filter.sku,
-            category=filter.category,
-            limit=filter.limit or 100,
-            offset=filter.offset or 0
-        )
-        
-        products = product_repository.get_by_filter(model_filter)
-        return [product_data_to_graphql(p) for p in products]
+        try:
+            if filter is None:
+                filter = ProductFilterInput()
+            
+            # Convert GraphQL input to model filter
+            model_filter = ProductDataFilter(
+                date=filter.date,
+                client_id=filter.client_id,
+                brand=filter.brand,
+                sku=filter.sku,
+                category=filter.category,
+                limit=filter.limit or 100,
+                offset=filter.offset or 0
+            )
+            
+            products = product_repository.get_by_filter(model_filter)
+            return [product_data_to_graphql(p) for p in products]
+        except Exception as e:
+            # Log the error and return empty list rather than crashing
+            print(f"Error searching products: {str(e)}")
+            return []
 
     @strawberry.field(description="Get available brands")
     def brands(self) -> List[str]:
