@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.graphql.router import graphql_router
+from app.api.auth.router import router as auth_router
 
 app = FastAPI(
     title="Pipol Challenge API",
@@ -19,7 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include GraphQL router
+# Include routers
+app.include_router(auth_router)
 app.include_router(graphql_router, tags=["GraphQL Data Service"])
 
 
