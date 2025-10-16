@@ -1,9 +1,16 @@
 """Main FastAPI application entry point."""
 
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.graphql.router import graphql_router
 from app.api.auth.router import router as auth_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 app = FastAPI(
     title="Pipol Challenge API",

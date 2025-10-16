@@ -1,10 +1,13 @@
 """GraphQL query resolvers."""
 
 import strawberry
+import logging
 from typing import List, Optional
 from app.api.graphql.types import ProductDataType, ProductFilterInput, StatsType
 from app.repositories.product_repository import product_repository
 from app.models.product_data import ProductDataFilter
+
+logger = logging.getLogger(__name__)
 
 
 def product_data_to_graphql(product_data) -> ProductDataType:
@@ -61,7 +64,7 @@ class Query:
             return [product_data_to_graphql(p) for p in products]
         except Exception as e:
             # Log the error and return empty list rather than crashing
-            print(f"Error fetching products: {str(e)}")
+            logger.error(f"Error fetching products: {str(e)}", exc_info=True)
             return []
 
     @strawberry.field(description="Search and filter product data")
@@ -97,7 +100,7 @@ class Query:
             return [product_data_to_graphql(p) for p in products]
         except Exception as e:
             # Log the error and return empty list rather than crashing
-            print(f"Error searching products: {str(e)}")
+            logger.error(f"Error searching products: {str(e)}", exc_info=True)
             return []
 
     @strawberry.field(description="Get available brands")
