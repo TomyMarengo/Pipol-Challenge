@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.graphql.router import graphql_router
 
 app = FastAPI(
     title="Pipol Challenge API",
@@ -18,6 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include GraphQL router
+app.include_router(graphql_router, tags=["GraphQL Data Service"])
+
 
 @app.get("/", tags=["Health"])
 async def root():
@@ -25,6 +29,11 @@ async def root():
     return {
         "status": "ok",
         "message": "Pipol Challenge API is running",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "endpoints": {
+            "graphql": "/graphql",
+            "docs": "/docs",
+            "auth": "/auth/token"
+        }
     }
 
