@@ -1,0 +1,118 @@
+"""Repository for product data access from CSV."""
+
+import pandas as pd
+from typing import List, Optional
+from pathlib import Path
+from app.models.product_data import ProductData, ProductDataFilter
+from app.core.config import settings
+
+
+class ProductRepository:
+    """Repository for accessing product data from CSV file."""
+
+    def __init__(self):
+        """Initialize the repository and load CSV data."""
+        self.csv_path = Path(settings.CSV_FILE_PATH)
+        self._df: Optional[pd.DataFrame] = None
+
+    def _load_data(self) -> pd.DataFrame:
+        """Load CSV data into pandas DataFrame."""
+        if self._df is None:
+            try:
+                self._df = pd.read_csv(self.csv_path)
+                # Replace NaN values with None for proper JSON serialization
+                self._df = self._df.where(pd.notnull(self._df), None)
+            except Exception as e:
+                raise Exception(f"Error loading CSV file: {str(e)}")
+        return self._df
+
+    def get_all(
+        self,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[ProductData]:
+        """
+        Get all product records with pagination.
+        
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+            
+        Returns:
+            List of ProductData objects
+        """
+        df = self._load_data()
+        
+        # Apply pagination
+        paginated_df = df.iloc[offset:offset + limit]
+        
+        # Convert to list of dictionaries
+        records = paginated_df.to_dict('records')
+        
+        # Convert to ProductData objects
+        return [ProductData(**record) for record in records]
+
+    def get_by_filter(self, filter_params: ProductDataFilter) -> List[ProductData]:
+        """
+        Get product records based on filter parameters.
+        
+        Args:
+            filter_params: Filter parameters
+            
+        Returns:
+            List of filtered ProductData objects
+        """
+        df = self._load_data()
+        
+        # Apply filters
+        if filter_params.date:
+            df = df[df['id_tie_fecha_valor'] == filter_params.date]
+        
+        if filter_params.client_id is not None:
+            df = df[df['id_cli_cliente'] == filter_params.client_id]
+        
+        if filter_params.brand:
+            df = df[df['desc_ga_marca_producto'].str.contains(
+                filter_params.brand, case=False, na=False
+            )]
+        
+        if filter_params.sku:
+            df = df[df['desc_ga_sku_producto'] == filter_params.sku]
+        
+        if filter_params.category:
+            df = df[df['desc_categoria_prod_principal'].str.contains(
+                filter_params.category, case=False, na=False
+            )]
+        
+        # Apply pagination
+        offset = filter_params.offset or 0
+        limit = filter_params.limit or 100
+        paginated_df = df.iloc[offset:offset + limit]
+        
+        # Convert to list of dictionaries
+        records = paginated_df.to_dict('records')
+        
+        # Convert to ProductData objects
+        return [ProductData(**record) for record in records]
+
+    def count(self) -> int:
+        """Get total count of records."""
+        df = self._load_data()
+        return len(df)
+
+    def get_brands(self) -> List[str]:
+        """Get list of unique brands."""
+        df = self._load_data()
+        brands = df['desc_ga_marca_producto'].dropna().unique().tolist()
+        return sorted([str(b) for b in brands if b != "No Aplica"])
+
+    def get_categories(self) -> List[str]:
+        """Get list of unique categories."""
+        df = self._load_data()
+        categories = df['desc_categoria_prod_principal'].dropna().unique().tolist()
+        return sorted([str(c) for c in categories])
+
+
+# Singleton instance
+product_repository = ProductRepository()
+
