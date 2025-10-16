@@ -135,8 +135,8 @@ class TestGraphQLEndpoint:
                 "query": """
                     query {
                         products(limit: 5, offset: 0) {
-                            desc_ga_nombre_producto_1
-                            desc_ga_marca_producto
+                            descGaNombreProducto1
+                            descGaMarcaProducto
                         }
                     }
                 """
@@ -158,8 +158,8 @@ class TestGraphQLEndpoint:
                 "query": """
                     query {
                         searchProducts(filter: { limit: 5 }) {
-                            desc_ga_nombre_producto_1
-                            desc_ga_marca_producto
+                            descGaNombreProducto1
+                            descGaMarcaProducto
                         }
                     }
                 """

@@ -17,10 +17,7 @@ async def get_context(
 
 
 # Create the GraphQL schema
-schema = strawberry.Schema(
-    query=Query,
-    description="GraphQL API for product analytics data"
-)
+schema = strawberry.Schema(query=Query)
 
 # Create the GraphQL router with authentication
 graphql_router = GraphQLRouter(

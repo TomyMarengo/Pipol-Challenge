@@ -19,9 +19,25 @@ class ProductRepository:
         """Load CSV data into pandas DataFrame."""
         if self._df is None:
             try:
-                self._df = pd.read_csv(self.csv_path)
-                # Replace NaN values with None for proper JSON serialization
+                # Read CSV with all columns as strings initially to preserve data types
+                self._df = pd.read_csv(self.csv_path, dtype=str, keep_default_na=False)
+                
+                # Convert specific numeric columns
+                numeric_columns = [
+                    'id_cli_cliente', 'id_ga_vista', 'id_ga_tipo_dispositivo',
+                    'id_ga_fuente_medio', 'fc_agregado_carrito_cant',
+                    'fc_ingreso_producto_monto', 'fc_retirado_carrito_cant',
+                    'fc_detalle_producto_cant', 'fc_producto_cant',
+                    'fc_visualizaciones_pag_cant', 'flag_pipol', 'id_ga_producto'
+                ]
+                
+                for col in numeric_columns:
+                    if col in self._df.columns:
+                        self._df[col] = pd.to_numeric(self._df[col], errors='coerce')
+                
+                # Replace NaN and empty strings with None for proper JSON serialization
                 self._df = self._df.where(pd.notnull(self._df), None)
+                self._df = self._df.replace('', None)
             except Exception as e:
                 raise Exception(f"Error loading CSV file: {str(e)}")
         return self._df
