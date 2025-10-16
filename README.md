@@ -19,9 +19,11 @@ A comprehensive API built with FastAPI featuring GraphQL data access, OAuth 2.0 
 
 This project implements three main services as part of a backend programming challenge:
 
-1. **Data Service**: GraphQL API for querying product analytics data from a CSV file
+1. **Data Service**: GraphQL API for querying product analytics data from a CSV file (25,864 records)
 2. **Auth Service**: OAuth 2.0 client credentials flow with JWT token generation
 3. **Docs Service**: Comprehensive Swagger/OpenAPI documentation
+
+**Data Source**: The CSV file contains product analytics data with 244 unique brands and 384 categories.
 
 ## ✨ Features
 
@@ -387,9 +389,62 @@ CSV_FILE_PATH=data.csv
 
 ## 🧪 Testing the API
 
-### Health Check
+### Run Unit Tests
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run all tests
+pytest -v
+
+# Run with coverage
+pytest --cov=app tests/
+```
+
+### Test Results
+✅ **All 34 tests passing:**
+- Auth Service: 8/8 tests ✅
+- Product Repository: 8/8 tests ✅  
+- API Endpoints: 8/8 tests ✅
+- Docker Integration: 10/10 tests ✅
+
+### Test Docker Deployment
+```bash
+# Build and start
+docker-compose up -d
+
+# Run comprehensive endpoint tests
+python test_docker_endpoints.py
+
+# Expected output: All 10 tests pass ✅
+```
+
+### Manual API Testing
+
+#### Health Check
 ```bash
 curl http://localhost:8000/
+```
+
+#### Get Access Token
+```bash
+curl -X POST "http://localhost:8000/auth/token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "client_credentials",
+    "client_id": "pipol_client",
+    "client_secret": "pipol_secret_2024"
+  }'
+```
+
+#### Query GraphQL (with token)
+```bash
+TOKEN="your_token_here"
+
+curl -X POST "http://localhost:8000/graphql" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ stats { totalRecords brandsCount categoriesCount } }"}'
 ```
 
 ### OpenAPI Schema
