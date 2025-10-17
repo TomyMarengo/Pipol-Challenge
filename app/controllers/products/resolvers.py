@@ -4,7 +4,7 @@ import strawberry
 import logging
 from typing import List, Optional
 from app.models.graphql.product_types import ProductDataType, ProductFilterInput, StatsType
-from app.repositories.product_repository import product_repository
+from app.services.products_service import products_service
 from app.models.domain.products import ProductDataFilter
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class Query:
             List of product data records
         """
         try:
-            products = product_repository.get_all(limit=limit, offset=offset)
+            products = products_service.get_all_products(limit=limit, offset=offset)
             return [product_data_to_graphql(p) for p in products]
         except Exception as e:
             # Log the error and return empty list rather than crashing
@@ -85,8 +85,8 @@ class Query:
             if filter is None:
                 filter = ProductFilterInput()
             
-            # Convert GraphQL input to model filter
-            model_filter = ProductDataFilter(
+            # Use service to build filter with validation
+            model_filter = products_service.build_filter(
                 date=filter.date,
                 client_id=filter.client_id,
                 brand=filter.brand,
@@ -96,7 +96,7 @@ class Query:
                 offset=filter.offset or 0
             )
             
-            products = product_repository.get_by_filter(model_filter)
+            products = products_service.search_products(model_filter)
             return [product_data_to_graphql(p) for p in products]
         except Exception as e:
             # Log the error and return empty list rather than crashing
@@ -111,7 +111,7 @@ class Query:
         Returns:
             List of brand names
         """
-        return product_repository.get_brands()
+        return products_service.get_available_brands()
 
     @strawberry.field(description="Get available categories")
     def categories(self) -> List[str]:
@@ -121,7 +121,7 @@ class Query:
         Returns:
             List of category names
         """
-        return product_repository.get_categories()
+        return products_service.get_available_categories()
 
     @strawberry.field(description="Get dataset statistics")
     def stats(self) -> StatsType:
@@ -131,13 +131,11 @@ class Query:
         Returns:
             Statistics including total records, brands, and categories
         """
-        total_records = product_repository.count()
-        brands = product_repository.get_brands()
-        categories = product_repository.get_categories()
+        stats_data = products_service.get_dataset_statistics()
         
         return StatsType(
-            total_records=total_records,
-            brands_count=len(brands),
-            categories_count=len(categories)
+            total_records=stats_data["total_records"],
+            brands_count=stats_data["brands_count"],
+            categories_count=stats_data["categories_count"]
         )
 
