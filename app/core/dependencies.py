@@ -8,8 +8,11 @@ from app.services.auth_service import auth_service
 # HTTP Bearer token security scheme
 security = HTTPBearer()
 
+# Define security dependency at module level
+security_dependency = Depends(security)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = security_dependency) -> dict:
     """
     Dependency to get and verify the current authenticated user from JWT token.
 
