@@ -33,20 +33,36 @@ class ProductRepository:
                 # Read CSV once with proper NaN handling
                 self._df = pd.read_csv(
                     self.csv_path, 
-                    na_values=['', 'nan', 'NaN', 'null'], 
-                    keep_default_na=True
+                    na_values=['', 'nan', 'NaN', 'null'],
+                    keep_default_na=True,
+                    dtype=str  # Read all as strings first to avoid type issues
                 )
 
                 # Convert numeric columns efficiently (vectorized)
                 for col in numeric_columns:
                     if col in self._df.columns:
-                        self._df[col] = pd.to_numeric(self._df[col], errors='coerce')
+                        # Only convert non-empty, non-'nan' strings to numeric
+                        mask = (self._df[col].notna()) & (self._df[col] != 'nan') & (self._df[col] != '')
+                        if mask.any():
+                            self._df.loc[mask, col] = pd.to_numeric(self._df.loc[mask, col], errors='coerce')
+                            # Replace any NaN results from failed conversions back to None
+                            self._df[col] = self._df[col].where(pd.notnull(self._df[col]), None)
+                        else:
+                            # If all values are None/nan/empty, set the whole column to None
+                            self._df[col] = None
 
-                # Single operation to replace all NaN values with None for Pydantic
+                # Convert id_tie_fecha_valor to string if it exists
+                if "id_tie_fecha_valor" in self._df.columns:
+                    self._df["id_tie_fecha_valor"] = self._df["id_tie_fecha_valor"].astype(str)
+                    # Replace 'nan' strings with None
+                    self._df["id_tie_fecha_valor"] = self._df["id_tie_fecha_valor"].replace('nan', None)
+
+                # Replace NaN values with None for Pydantic compatibility
+                # Use where() method instead of fillna for better compatibility
                 self._df = self._df.where(pd.notnull(self._df), None)
 
             except Exception as e:
-                raise Exception(f"Error loading CSV file: {str(e)}") from e
+                raise IOError(f"Error loading CSV file: {str(e)}") from e
         return self._df
 
     def get_all(self, limit: int = 100, offset: int = 0) -> List[ProductData]:

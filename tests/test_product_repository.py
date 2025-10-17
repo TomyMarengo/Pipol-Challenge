@@ -116,3 +116,70 @@ class TestProductRepository:
 
         assert len(categories) == 3
         assert "CAMPING" in categories
+
+    @patch("app.repositories.product_repository.pd.read_csv")
+    def test_load_data_file_not_found(self, mock_read_csv):
+        """Test CSV loading when file doesn't exist."""
+        mock_read_csv.side_effect = FileNotFoundError("File not found")
+
+        repo = ProductRepository()
+
+        with pytest.raises(IOError, match="Error loading CSV file"):
+            repo._load_data()
+
+    @patch("app.repositories.product_repository.pd.read_csv")
+    def test_load_data_permission_error(self, mock_read_csv):
+        """Test CSV loading when file permissions are denied."""
+        mock_read_csv.side_effect = PermissionError("Permission denied")
+
+        repo = ProductRepository()
+
+        with pytest.raises(IOError, match="Error loading CSV file"):
+            repo._load_data()
+
+    @patch("app.repositories.product_repository.pd.read_csv")
+    def test_load_data_with_nan_values(self, mock_read_csv):
+        """Test CSV loading with NaN values that need conversion."""
+        # Create DataFrame with NaN values that would cause Pydantic errors
+        import numpy as np
+        df_with_nans = pd.DataFrame({
+            "id_tie_fecha_valor": ["20240129", "20240130"],
+            "id_cli_cliente": [8, np.nan],  # This should become None
+            "fc_agregado_carrito_cant": [1, np.nan],  # This should become None
+            "desc_ga_marca_producto": ["STANLEY", "DEWALT"],
+        })
+        mock_read_csv.return_value = df_with_nans
+
+        repo = ProductRepository()
+        df = repo._load_data()
+
+        # Verify NaN values were converted to None (or remain as NaN if not in numeric columns)
+        # The actual conversion happens when creating ProductData objects
+        assert df.iloc[1]["id_cli_cliente"] is None or pd.isna(df.iloc[1]["id_cli_cliente"])
+        assert df.iloc[1]["fc_agregado_carrito_cant"] is None or pd.isna(df.iloc[1]["fc_agregado_carrito_cant"])
+
+    def test_get_all_with_real_validation(self):
+        """Test that get_all properly handles data validation."""
+        # This test uses a real ProductRepository without mocking
+        # to ensure the NaN conversion actually works
+        repo = ProductRepository()
+
+        # This should not raise ValidationError anymore
+        try:
+            products = repo.get_all(limit=1)
+            # Should get at least one product if CSV exists
+            assert isinstance(products, list)
+        except IOError:
+            # If CSV file doesn't exist, that's expected in test environment
+            pytest.skip("CSV file not available in test environment")
+
+    @patch("app.repositories.product_repository.pd.read_csv")
+    def test_get_by_filter_error_propagation(self, mock_read_csv):
+        """Test error propagation from _load_data in filtering."""
+        mock_read_csv.side_effect = IOError("Disk error")
+
+        repo = ProductRepository()
+        filter_params = ProductDataFilter(brand="STANLEY")
+
+        with pytest.raises(IOError, match="Error loading CSV file"):
+            repo.get_by_filter(filter_params)

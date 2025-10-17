@@ -13,7 +13,7 @@ class TestHealthEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["status"] == "ok"
-        assert "endpoints" in data
+        assert "services" in data
 
 
 class TestAuthEndpoint:

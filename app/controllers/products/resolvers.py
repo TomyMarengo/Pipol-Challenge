@@ -71,7 +71,7 @@ class Query:
                 brand=filters.brand,
                 sku=filters.sku,
                 category=filters.category,
-                limit=filters.limit or 100,
+                limit=filters.limit or 50,
                 offset=filters.offset or 0,
             )
 

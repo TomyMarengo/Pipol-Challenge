@@ -2,6 +2,8 @@
 
 from unittest.mock import Mock
 
+import pytest
+
 from app.models.domain.products import ProductData, ProductDataFilter
 from app.services.products_service import ProductsService
 
@@ -124,7 +126,7 @@ class TestProductsService:
 
         # Test maximum limits
         limit, offset = self.service.validate_pagination(2000, 100)
-        assert limit == 1000  # Maximum is 1000
+        assert limit == 100  # Maximum is now 100 for security
         assert offset == 100  # Offset is preserved
 
     def test_build_filter_all_params(self):
@@ -156,16 +158,16 @@ class TestProductsService:
         assert filter_obj.brand is None
         assert filter_obj.sku is None
         assert filter_obj.category is None
-        assert filter_obj.limit == 100  # Default
+        assert filter_obj.limit == 50  # New default
         assert filter_obj.offset == 0  # Default
 
     def test_build_filter_with_validation(self):
         """Test building filter with validation applied."""
         filter_obj = self.service.build_filter(
-            limit=2000, offset=-10  # Should be capped at 1000  # Should be set to 0
+            limit=2000, offset=-10  # Should be capped at 100  # Should be set to 0
         )
 
-        assert filter_obj.limit == 1000
+        assert filter_obj.limit == 100
         assert filter_obj.offset == 0
 
     def test_service_singleton(self):
@@ -175,3 +177,91 @@ class TestProductsService:
         # Should be the same instance
         assert products_service is not None
         assert isinstance(products_service, ProductsService)
+
+    def test_get_all_products_with_repository_error(self):
+        """Test error handling when repository raises IOError."""
+        # Mock the repository to raise IOError
+        mock_repo = Mock()
+        mock_repo.get_all.side_effect = IOError("Error loading CSV file: File not found")
+        self.service.repository = mock_repo
+
+        # Service should propagate the error
+        with pytest.raises(IOError, match="Error loading CSV file"):
+            self.service.get_all_products(limit=10, offset=0)
+
+    def test_search_products_with_repository_error(self):
+        """Test error handling when repository raises IOError during search."""
+        # Mock the repository to raise IOError
+        mock_repo = Mock()
+        mock_repo.get_by_filter.side_effect = IOError("Error loading CSV file: Permission denied")
+        self.service.repository = mock_repo
+
+        filter_params = ProductDataFilter(brand="STANLEY")
+
+        # Service should propagate the error
+        with pytest.raises(IOError, match="Error loading CSV file"):
+            self.service.search_products(filter_params)
+
+    def test_get_available_brands_with_repository_error(self):
+        """Test error handling when repository raises IOError getting brands."""
+        # Mock the repository to raise IOError
+        mock_repo = Mock()
+        mock_repo.get_brands.side_effect = IOError("Error loading CSV file")
+        self.service.repository = mock_repo
+
+        # Service should propagate the error
+        with pytest.raises(IOError):
+            self.service.get_available_brands()
+
+    def test_get_dataset_statistics_with_repository_error(self):
+        """Test error handling when repository raises IOError getting statistics."""
+        # Mock the repository to raise IOError on count
+        mock_repo = Mock()
+        mock_repo.count.side_effect = IOError("Error loading CSV file")
+        self.service.repository = mock_repo
+
+        # Service should propagate the error
+        with pytest.raises(IOError):
+            self.service.get_dataset_statistics()
+
+    def test_security_string_sanitization(self):
+        """Test that string inputs are properly sanitized."""
+        # Test with potentially malicious input
+        malicious_brand = "'; DROP TABLE products; --"
+        dangerous_category = "<script>alert('xss')</script>"
+        long_sku = "A" * 200  # Very long string
+
+        filter_obj = self.service.build_filter(
+            brand=malicious_brand,
+            category=dangerous_category, 
+            sku=long_sku
+        )
+
+        # Should be sanitized (SQL injection characters removed)
+        assert "DROP" not in filter_obj.brand
+        assert ";" not in filter_obj.brand
+        assert "--" not in filter_obj.brand
+
+        # Should remove script tags
+        assert "<script>" not in filter_obj.category
+        assert "alert" not in filter_obj.category
+
+        # Should truncate long strings
+        assert len(filter_obj.sku) <= 100
+
+
+    def test_security_limit_boundaries(self):
+        """Test security boundaries for pagination limits."""
+        # Test various limit values
+        test_cases = [
+            (0, 1),      # Below minimum
+            (1, 1),      # At minimum
+            (50, 50),    # Default
+            (100, 100),  # At maximum
+            (101, 100),  # Above maximum (should be capped)
+            (999, 100),  # Way above maximum
+        ]
+
+        for input_limit, expected_limit in test_cases:
+            validated_limit, _ = self.service.validate_pagination(input_limit, 0)
+            assert validated_limit == expected_limit, f"Input {input_limit} should become {expected_limit}, got {validated_limit}"

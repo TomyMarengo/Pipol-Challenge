@@ -54,7 +54,7 @@ class ProductFilterInput:
     sku: Optional[str] = strawberry.field(default=None, description="Filter by product SKU")
     category: Optional[str] = strawberry.field(default=None, description="Filter by category")
     limit: Optional[int] = strawberry.field(
-        default=100, description="Maximum number of records (max 1000)"
+        default=50, description="Maximum number of records (max 100, default 50)"
     )
     offset: Optional[int] = strawberry.field(default=0, description="Number of records to skip")
 

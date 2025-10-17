@@ -1,5 +1,6 @@
 """Products business logic service."""
 
+import re
 from typing import List, Optional
 
 from app.models.domain.products import ProductData, ProductDataFilter
@@ -84,8 +85,8 @@ class ProductsService:
         Returns:
             Tuple of (validated_limit, validated_offset)
         """
-        # Ensure reasonable limits
-        validated_limit = min(max(1, limit), 1000)  # Between 1 and 1000
+        max_limit = 100
+        validated_limit = min(max(1, limit), max_limit)  # Between 1 and 100
         validated_offset = max(0, offset)  # Non-negative
 
         return validated_limit, validated_offset
@@ -97,7 +98,7 @@ class ProductsService:
         brand: Optional[str] = None,
         sku: Optional[str] = None,
         category: Optional[str] = None,
-        limit: int = 100,
+        limit: int = 50,
         offset: int = 0,
     ) -> ProductDataFilter:
         """
@@ -117,15 +118,60 @@ class ProductsService:
         """
         validated_limit, validated_offset = self.validate_pagination(limit, offset)
 
+        # Sanitize string inputs to prevent injection attacks
+        sanitized_date = self._sanitize_string_input(date) if date else None
+        sanitized_brand = self._sanitize_string_input(brand) if brand else None
+        sanitized_sku = self._sanitize_string_input(sku) if sku else None
+        sanitized_category = self._sanitize_string_input(category) if category else None
+
         return ProductDataFilter(
-            date=date,
+            date=sanitized_date,
             client_id=client_id,
-            brand=brand,
-            sku=sku,
-            category=category,
+            brand=sanitized_brand,
+            sku=sanitized_sku,
+            category=sanitized_category,
             limit=validated_limit,
             offset=validated_offset,
         )
+
+
+    def _sanitize_string_input(self, value: str) -> str:
+        """
+        Sanitize string inputs to prevent injection attacks.
+
+        Args:
+            value: Input string to sanitize
+
+        Returns:
+            Sanitized string
+        """
+        if not value:
+            return value
+
+        # Remove potentially dangerous SQL and XSS characters
+        # First remove specific dangerous patterns
+        dangerous_patterns = [
+            r'[;\'"<>]',  # SQL injection and XSS characters
+            r'--',        # SQL comments
+            r'/\*',       # SQL block comments
+            r'\*/',       # SQL block comments
+            r'script|alert|eval|document|window',    # XSS functions and objects (case insensitive)
+            r'DROP|INSERT|UPDATE|DELETE|SELECT|UNION|TABLE',  # SQL keywords (case insensitive)
+        ]
+
+        sanitized = value.strip()
+        for pattern in dangerous_patterns:
+            sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE)
+
+        # Keep only alphanumeric, spaces, hyphens, underscores, dots, and safe punctuation
+        sanitized = re.sub(r'[^\w\s\-_.,&()]+', '', sanitized)
+
+        # Limit string length to prevent memory attacks
+        max_length = 100
+        if len(sanitized) > max_length:
+            sanitized = sanitized[:max_length]
+
+        return sanitized.strip()
 
 
 # Singleton instance
