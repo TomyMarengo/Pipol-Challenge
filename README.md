@@ -13,7 +13,7 @@ A comprehensive API built with FastAPI featuring GraphQL data access, OAuth 2.0 
 - [API Documentation](#api-documentation)
 - [Usage Examples](#usage-examples)
 - [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
+- [Configuration](#configuration)
 
 ## 🎯 Overview
 
@@ -39,7 +39,8 @@ This project implements three main services as part of a backend programming cha
 ### Auth Service (OAuth 2.0)
 - ✅ OAuth 2.0 Client Credentials flow
 - ✅ JWT token generation and validation
-- ✅ Endpoint: `/auth/token`
+- ✅ Refresh token support
+- ✅ Endpoints: `/auth/token`, `/auth/refresh`
 - ✅ Secure token-based authentication
 
 ### Docs Service (Swagger)
@@ -54,12 +55,13 @@ The project follows **Clean Architecture** principles with clear separation of c
 
 ```
 app/
-├── api/              # API layer (GraphQL, Auth endpoints)
-├── models/           # Data models and schemas
-├── repositories/     # Data access layer
-├── services/         # Business logic
-├── core/            # Configuration and dependencies
-└── middleware/      # Cross-cutting concerns
+├── controllers/      # API layer (GraphQL, Auth endpoints)
+├── models/          # Data models and schemas
+│   ├── domain/      # Business domain models
+│   └── graphql/     # GraphQL type definitions
+├── repositories/    # Data access layer
+├── services/        # Business logic
+└── core/           # Configuration and dependencies
 ```
 
 ## 📦 Prerequisites
@@ -180,7 +182,9 @@ curl -X POST "http://localhost:8000/auth/token" \
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer",
-  "expires_in": 1800
+  "expires_in": 1800,
+  "refresh_token": "pipol_client:abc123...",
+  "refresh_expires_in": 604800
 }
 ```
 
@@ -288,13 +292,12 @@ curl -X POST "http://localhost:8000/graphql" \
 ```
 pipol-challenge/
 ├── app/
-│   ├── api/
+│   ├── controllers/
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   └── router.py          # OAuth2 endpoints
-│   │   └── graphql/
+│   │   └── products/
 │   │       ├── __init__.py
-│   │       ├── types.py           # GraphQL type definitions
 │   │       ├── resolvers.py       # GraphQL query resolvers
 │   │       └── router.py          # GraphQL router config
 │   ├── core/
@@ -302,54 +305,34 @@ pipol-challenge/
 │   │   ├── config.py              # App configuration
 │   │   └── dependencies.py        # FastAPI dependencies
 │   ├── models/
-│   │   ├── __init__.py
-│   │   ├── auth.py                # Auth models
-│   │   └── product_data.py        # Product data models
+│   │   ├── domain/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py            # Auth models
+│   │   │   └── products.py        # Product data models
+│   │   └── graphql/
+│   │       ├── __init__.py
+│   │       └── product_types.py   # GraphQL type definitions
 │   ├── repositories/
 │   │   ├── __init__.py
 │   │   └── product_repository.py  # CSV data access
 │   ├── services/
 │   │   ├── __init__.py
-│   │   └── auth_service.py        # JWT token service
-│   ├── middleware/
-│   │   └── __init__.py
+│   │   ├── auth_service.py        # JWT token service
+│   │   └── products_service.py    # Product business logic
 │   ├── __init__.py
 │   └── main.py                    # FastAPI application
+├── tests/                         # Unit and integration tests
 ├── data.csv                       # Product data
+├── api-tests.http                 # HTTP test requests
+├── pyproject.toml                 # Linting configuration
+├── pytest.ini                     # Test configuration
 ├── .env                           # Environment variables
-├── .env.example                   # Environment template
 ├── .gitignore
-├── .dockerignore
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
-
-## 🛠️ Technologies Used
-
-### Framework & Server
-- **FastAPI** - Modern, fast web framework
-- **Uvicorn** - ASGI server
-
-### GraphQL
-- **Strawberry GraphQL** - Python GraphQL library with type hints
-
-### Authentication & Security
-- **python-jose** - JWT token handling
-- **passlib & bcrypt** - Password hashing utilities
-
-### Data Processing
-- **Pandas** - CSV data processing and filtering
-- **Pydantic** - Data validation and settings management
-
-### Documentation
-- **OpenAPI 3.0** - API specification
-- **Swagger UI** - Interactive API documentation
-
-### Infrastructure
-- **Docker** - Containerization
-- **Docker Compose** - Multi-container orchestration
 
 ## 🔐 Default Credentials
 
@@ -386,106 +369,3 @@ CLIENT_SECRET=pipol_secret_2024
 # CSV Data
 CSV_FILE_PATH=data.csv
 ```
-
-## 🧪 Testing the API
-
-### Run Unit Tests
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run all tests
-pytest -v
-
-# Run with coverage
-pytest --cov=app tests/
-```
-
-### Test Results
-✅ **All 34 tests passing:**
-- Auth Service: 8/8 tests ✅
-- Product Repository: 8/8 tests ✅  
-- API Endpoints: 8/8 tests ✅
-- Docker Integration: 10/10 tests ✅
-
-### Test Docker Deployment
-```bash
-# Build and start
-docker-compose up -d
-
-# Run comprehensive endpoint tests
-python test_docker_endpoints.py
-
-# Expected output: All 10 tests pass ✅
-```
-
-### Manual API Testing
-
-#### Health Check
-```bash
-curl http://localhost:8000/
-```
-
-#### Get Access Token
-```bash
-curl -X POST "http://localhost:8000/auth/token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "client_credentials",
-    "client_id": "pipol_client",
-    "client_secret": "pipol_secret_2024"
-  }'
-```
-
-#### Query GraphQL (with token)
-```bash
-TOKEN="your_token_here"
-
-curl -X POST "http://localhost:8000/graphql" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "{ stats { totalRecords brandsCount categoriesCount } }"}'
-```
-
-### OpenAPI Schema
-```bash
-curl http://localhost:8000/openapi.json
-```
-
-## 🐛 Troubleshooting
-
-### Docker Issues
-
-**Container won't start:**
-```bash
-docker-compose down
-docker-compose up --build
-```
-
-**View logs:**
-```bash
-docker-compose logs -f api
-```
-
-### Port Already in Use
-
-If port 8000 is already in use, modify `docker-compose.yml`:
-```yaml
-ports:
-  - "8001:8000"  # Use port 8001 instead
-```
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 👤 Author
-
-Created for the Pipol Backend Programming Challenge
-
-## 🙏 Acknowledgments
-
-- Built with FastAPI and Strawberry GraphQL
-- Uses OAuth 2.0 and JWT best practices
-- Follows Clean Architecture principles
-
