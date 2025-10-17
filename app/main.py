@@ -66,7 +66,7 @@ This API provides access to product analytics data from a CSV file through multi
        fc_agregado_carrito_cant
      }
    }
-   
+
    # Search with filters
    query {
      searchProducts(filters: { brand: "STANLEY", limit: 5 }) {
@@ -74,7 +74,7 @@ This API provides access to product analytics data from a CSV file through multi
        desc_ga_marca_producto
      }
    }
-   
+
    # Get statistics
    query {
      stats {
@@ -124,7 +124,7 @@ async def root():
         "version": "1.0.0",
         "services": {
             "data_service": {
-                "name": "Data Service", 
+                "name": "Data Service",
                 "endpoint": "/graphql",
                 "description": "GraphQL API for CSV data access"
             },
