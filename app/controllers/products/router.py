@@ -7,9 +7,11 @@ from strawberry.fastapi import GraphQLRouter
 from app.controllers.products.resolvers import Query
 from app.core.dependencies import get_current_user
 
+# Define dependency at module level
+user_dependency = Depends(get_current_user)
 
 # Context class to pass authentication info to resolvers
-async def get_context(user: dict = Depends(get_current_user)):
+async def get_context(user: dict = user_dependency):
     """Get GraphQL context with authenticated user."""
     return {"user": user}
 
