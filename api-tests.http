@@ -1,27 +1,39 @@
 ###
-# Pipol Challenge API - HTTP Test Suite
+# PIPOL CHALLENGE API - COMPLETE TEST SUITE
 # 
 # Usage:
-# 1. Install REST Client extension in VSCode
-# 2. Start the server: docker-compose up -d
-# 3. Click "Send Request" above each request
+# 1. Install REST Client extension in VSCode/WebStorm
+# 2. Start server: docker-compose up -d
+# 3. Click "Send Request" above each ### section
+# 4. For GraphQL tests: Get token first, then replace YOUR_TOKEN_HERE
+# 5. For refresh tests: Use refresh_token from token response
 ###
 
 @baseUrl = http://localhost:8000
 
-### Variables (will be set from responses)
-# @accessToken = {{auth-success.response.body.access_token}}
+###
+# HEALTH & DOCUMENTATION ENDPOINTS
+###
 
-###
-# 1. HEALTH CHECK
-###
+### 1. HEALTH CHECK
 GET {{baseUrl}}/
 Content-Type: application/json
 
+### 2. GET OPENAPI SCHEMA
+GET {{baseUrl}}/openapi.json
+
+### 3. SWAGGER UI (Returns HTML)
+GET {{baseUrl}}/docs
+
+### 4. REDOC UI (Returns HTML)  
+GET {{baseUrl}}/redoc
+
 ###
-# 2. AUTH SERVICE - SUCCESS CASE
+# AUTHENTICATION ENDPOINTS
+###
+
+### 5. AUTH - SUCCESS CASE (Client Credentials)
 # @name auth-success
-###
 POST {{baseUrl}}/auth/token
 Content-Type: application/json
 
@@ -31,9 +43,7 @@ Content-Type: application/json
   "client_secret": "pipol_secret_2024"
 }
 
-###
-# 3. AUTH SERVICE - INVALID CREDENTIALS  
-###
+### 6. AUTH - INVALID CREDENTIALS
 POST {{baseUrl}}/auth/token
 Content-Type: application/json
 
@@ -43,9 +53,7 @@ Content-Type: application/json
   "client_secret": "wrong_secret"
 }
 
-###
-# 4. AUTH SERVICE - INVALID GRANT TYPE
-###
+### 7. AUTH - INVALID GRANT TYPE
 POST {{baseUrl}}/auth/token
 Content-Type: application/json
 
@@ -55,55 +63,132 @@ Content-Type: application/json
   "client_secret": "pipol_secret_2024"
 }
 
+### 8. AUTH - MISSING FIELDS (Should return 422)
+POST {{baseUrl}}/auth/token
+Content-Type: application/json
+
+{
+  "client_id": "pipol_client"
+}
+
 ###
-# 5. GRAPHQL - WITHOUT AUTHENTICATION (Should fail with 403)
+# REFRESH TOKEN ENDPOINTS
 ###
+
+### 9. REFRESH TOKEN - SUCCESS (Replace REFRESH_TOKEN_HERE)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "REFRESH_TOKEN_HERE",
+  "client_id": "pipol_client"
+}
+
+### 10. REFRESH TOKEN - INVALID TOKEN
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "invalid_refresh_token_12345",
+  "client_id": "pipol_client"
+}
+
+### 11. REFRESH TOKEN - INVALID GRANT TYPE
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "refresh_token": "some_token",
+  "client_id": "pipol_client"
+}
+
+### 12. REFRESH TOKEN - MISSING FIELDS (Should return 422)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "client_id": "pipol_client"
+}
+
+###
+# GRAPHQL ENDPOINTS - WITHOUT AUTHENTICATION
+###
+
+### 13. GRAPHQL - NO AUTH (Should fail with 403)
 POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "{ stats { totalRecords brandsCount categoriesCount } }"
+  "query": "{ stats { totalRecords } }"
 }
 
-###
-# 6. GRAPHQL - WITH INVALID TOKEN (Should fail with 401)
-###
+### 14. GRAPHQL - INVALID TOKEN (Should fail with 401)
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer invalid_token_here
+Authorization: Bearer invalid_token_here_12345
 
 {
-  "query": "{ stats { totalRecords brandsCount categoriesCount } }"
+  "query": "{ stats { totalRecords } }"
+}
+
+### 15. GRAPHQL - MALFORMED TOKEN (Should fail with 401)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer not-a-jwt-token
+
+{
+  "query": "{ stats { totalRecords } }"
+}
+
+### 16. GRAPHQL - EXPIRED TOKEN (Should fail with 401)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwaXBvbF9jbGllbnQiLCJ0eXBlIjoiY2xpZW50X2NyZWRlbnRpYWxzIiwiZXhwIjoxNjAwMDAwMDAwLCJpYXQiOjE2MDAwMDAwMDB9.invalid
+
+{
+  "query": "{ stats { totalRecords } }"
 }
 
 ###
-# 7. GRAPHQL - STATS QUERY (Replace TOKEN_HERE with actual token)
+# GRAPHQL ENDPOINTS - WITH AUTHENTICATION
+# Replace YOUR_TOKEN_HERE with actual token from auth-success response
 ###
+
+### 17. GRAPHQL - STATS QUERY
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query GetStats { stats { totalRecords brandsCount categoriesCount } }"
 }
 
-###
-# 8. GRAPHQL - GET BRANDS (Replace TOKEN_HERE with actual token)
-###
+### 18. GRAPHQL - GET ALL BRANDS
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query GetBrands { brands }"
 }
 
-###
-# 9. GRAPHQL - GET PRODUCTS WITH PAGINATION (Replace TOKEN_HERE with actual token)
-###
+### 19. GRAPHQL - GET ALL CATEGORIES
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "query GetCategories { categories }"
+}
+
+### 20. GRAPHQL - PRODUCTS WITH PAGINATION
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query GetProducts($limit: Int!, $offset: Int!) { products(limit: $limit, offset: $offset) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
@@ -113,15 +198,22 @@ Authorization: Bearer TOKEN_HERE
   }
 }
 
-###
-# 10. GRAPHQL - SEARCH PRODUCTS BY BRAND (Replace TOKEN_HERE with actual token)
-###
+### 21. GRAPHQL - PRODUCTS PAGINATION PAGE 2
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchProducts($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
+  "query": "{ products(limit: 3, offset: 3) { descGaNombreProducto1 descGaMarcaProducto } }"
+}
+
+### 22. GRAPHQL - SEARCH BY BRAND (STANLEY)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "query SearchByBrand($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
   "variables": {
     "filter": {
       "brand": "STANLEY",
@@ -130,12 +222,10 @@ Authorization: Bearer TOKEN_HERE
   }
 }
 
-###
-# 11. GRAPHQL - SEARCH PRODUCTS BY CATEGORY (Replace TOKEN_HERE with actual token)
-###
+### 23. GRAPHQL - SEARCH BY CATEGORY (CAMPING)
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query SearchByCategory($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
@@ -147,12 +237,10 @@ Authorization: Bearer TOKEN_HERE
   }
 }
 
-###
-# 12. GRAPHQL - SEARCH PRODUCTS BY DATE (Replace TOKEN_HERE with actual token)
-###
+### 24. GRAPHQL - SEARCH BY DATE
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query SearchByDate($filter: ProductFilterInput) { searchProducts(filter: $filter) { idTieFechaValor descGaNombreProducto1 descGaMarcaProducto } }",
@@ -164,47 +252,95 @@ Authorization: Bearer TOKEN_HERE
   }
 }
 
-###
-# 13. GRAPHQL - GET CATEGORIES (Replace TOKEN_HERE with actual token)
-###
+### 25. GRAPHQL - SEARCH BY SKU
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query GetCategories { categories }"
+  "query": "query SearchBySku($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto } }",
+  "variables": {
+    "filter": {
+      "sku": "K1010148001",
+      "limit": 2
+    }
+  }
 }
 
-###
-# 14. GRAPHQL - COMPLEX QUERY WITH MULTIPLE FIELDS (Replace TOKEN_HERE with actual token)
-###
+### 26. GRAPHQL - SEARCH BY CLIENT ID
 POST {{baseUrl}}/graphql
 Content-Type: application/json
-Authorization: Bearer TOKEN_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "query SearchByClient($filter: ProductFilterInput) { searchProducts(filter: $filter) { idCliCliente descGaNombreProducto1 } }",
+  "variables": {
+    "filter": {
+      "client_id": 8,
+      "limit": 5
+    }
+  }
+}
+
+### 27. GRAPHQL - COMPLEX MULTI-FIELD QUERY
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
 
 {
   "query": "query ComplexQuery { stats { totalRecords brandsCount categoriesCount } products(limit: 2) { idTieFechaValor idCliCliente descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal fcAgregadoCarritoCant fcIngresoProductoMonto } }"
 }
 
+### 28. GRAPHQL - ADVANCED FILTERING (Multiple criteria)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "query AdvancedSearch($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
+  "variables": {
+    "filter": {
+      "brand": "STANLEY",
+      "date": "20240129",
+      "limit": 5,
+      "offset": 0
+    }
+  }
+}
+
+### 29. GRAPHQL - EMPTY RESULTS (Search for non-existent data)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ searchProducts(filter: { brand: \"NONEXISTENT_BRAND\" }) { descGaNombreProducto1 } }"
+}
+
+### 30. GRAPHQL - INVALID QUERY (Should return GraphQL error)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ invalidField { nonExistentField } }"
+}
+
+### 31. GRAPHQL - INVALID SYNTAX (Should return GraphQL error)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ stats { totalRecords"
+}
+
 ###
-# 15. SWAGGER/OPENAPI ENDPOINTS
+# QUICK TEST WORKFLOW
+# Run these in sequence for fast testing:
 ###
 
-### Get OpenAPI JSON Schema
-GET {{baseUrl}}/openapi.json
-
-### Get Swagger UI (will return HTML)
-GET {{baseUrl}}/docs
-
-### Get ReDoc UI (will return HTML)  
-GET {{baseUrl}}/redoc
-
-###
-# AUTOMATED WORKFLOW EXAMPLE
-# This uses the token from the successful auth request
-###
-
-### Step 1: Get Token
+### STEP 1: Get Token
 # @name get-token
 POST {{baseUrl}}/auth/token
 Content-Type: application/json
@@ -215,21 +351,103 @@ Content-Type: application/json
   "client_secret": "pipol_secret_2024"
 }
 
-### Step 2: Use Token Automatically (uncomment if REST Client supports it)
-# POST {{baseUrl}}/graphql
-# Content-Type: application/json
-# Authorization: Bearer {{get-token.response.body.access_token}}
-# 
-# {
-#   "query": "{ stats { totalRecords brandsCount categoriesCount } }"
-# }
+### STEP 2: Test GraphQL (Replace TOKEN with result from Step 1)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer TOKEN_FROM_STEP_1
+
+{
+  "query": "{ stats { totalRecords brandsCount categoriesCount } }"
+}
+
+### STEP 3: Test Refresh Token (Replace REFRESH_TOKEN with result from Step 1)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "REFRESH_TOKEN_FROM_STEP_1",
+  "client_id": "pipol_client"
+}
 
 ###
-# QUICK TESTING SEQUENCE
-# Run these in order for a full test:
-# 1. Health Check
-# 2. Get Token (auth-success)
-# 3. Copy the access_token from response
-# 4. Replace "TOKEN_HERE" in any GraphQL request
-# 5. Run GraphQL queries
+# EDGE CASES AND ERROR TESTING
+###
+
+### 32. GRAPHQL - Empty Query
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": ""
+}
+
+### 33. GRAPHQL - No Query Field
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "variables": {}
+}
+
+### 34. AUTH - Empty Body
+POST {{baseUrl}}/auth/token
+Content-Type: application/json
+
+{}
+
+### 35. REFRESH - Empty Body
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{}
+
+###
+# PERFORMANCE & LOAD TESTING
+###
+
+### 36. GRAPHQL - Large Limit (Test pagination limits)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ products(limit: 1000, offset: 0) { descGaNombreProducto1 } }"
+}
+
+### 37. GRAPHQL - High Offset (Test large datasets)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ products(limit: 10, offset: 25000) { descGaNombreProducto1 } }"
+}
+
+###
+# TESTING NOTES:
+# 
+# 1. Authentication Flow:
+#    - Get token from /auth/token
+#    - Use access_token in Authorization header
+#    - Use refresh_token in /auth/refresh when access token expires
+#
+# 2. GraphQL Testing:
+#    - All GraphQL queries use POST to /graphql
+#    - Must include Authorization header with valid JWT
+#    - Can use variables for dynamic queries
+#
+# 3. Expected Status Codes:
+#    - 200: Success
+#    - 400: Bad Request (invalid grant_type, malformed request)
+#    - 401: Unauthorized (invalid credentials, expired token)
+#    - 403: Forbidden (no authentication provided)
+#    - 422: Unprocessable Entity (validation errors)
+#
+# 4. Token Lifetimes:
+#    - Access Token: 30 minutes
+#    - Refresh Token: 7 days
+#
 ###

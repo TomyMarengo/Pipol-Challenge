@@ -30,6 +30,8 @@ class TokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
     expires_in: int = Field(..., description="Token expiration time in seconds")
+    refresh_token: str = Field(..., description="Refresh token for getting new access tokens")
+    refresh_expires_in: int = Field(..., description="Refresh token expiration time in seconds")
 
     class Config:
         """Pydantic configuration."""
@@ -37,7 +39,30 @@ class TokenResponse(BaseModel):
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "token_type": "bearer",
-                "expires_in": 1800
+                "expires_in": 1800,
+                "refresh_token": "def50200a5c...",
+                "refresh_expires_in": 604800
+            }
+        }
+
+
+class RefreshTokenRequest(BaseModel):
+    """OAuth2 refresh token request."""
+    
+    grant_type: str = Field(
+        ...,
+        description="OAuth2 grant type (must be 'refresh_token')"
+    )
+    refresh_token: str = Field(..., description="Valid refresh token")
+    client_id: str = Field(..., description="Client ID")
+
+    class Config:
+        """Pydantic configuration."""
+        json_schema_extra = {
+            "example": {
+                "grant_type": "refresh_token",
+                "refresh_token": "def50200a5c...",
+                "client_id": "pipol_client"
             }
         }
 

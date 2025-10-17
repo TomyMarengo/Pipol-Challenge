@@ -64,6 +64,137 @@ class TestAuthEndpoint:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+class TestRefreshTokenEndpoint:
+    """Test cases for refresh token endpoint."""
+
+    def test_refresh_token_success(self, client):
+        """Test successful token refresh."""
+        # First, get a token with refresh token
+        token_response = client.post(
+            "/auth/token",
+            json={
+                "grant_type": "client_credentials",
+                "client_id": "pipol_client",
+                "client_secret": "pipol_secret_2024"
+            }
+        )
+        
+        assert token_response.status_code == status.HTTP_200_OK
+        token_data = token_response.json()
+        refresh_token = token_data["refresh_token"]
+        
+        # Now use refresh token to get new access token
+        response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": "pipol_client"
+            }
+        )
+        
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+        assert data["token_type"] == "bearer"
+        assert "expires_in" in data
+        assert "refresh_expires_in" in data
+
+    def test_refresh_token_invalid_token(self, client):
+        """Test refresh with invalid refresh token."""
+        response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "refresh_token",
+                "refresh_token": "invalid_refresh_token_12345",
+                "client_id": "pipol_client"
+            }
+        )
+        
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_refresh_token_invalid_grant_type(self, client):
+        """Test refresh with invalid grant type."""
+        response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "client_credentials",
+                "refresh_token": "some_token",
+                "client_id": "pipol_client"
+            }
+        )
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_refresh_token_missing_fields(self, client):
+        """Test refresh with missing required fields."""
+        response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "refresh_token",
+                "client_id": "pipol_client"
+                # Missing refresh_token
+            }
+        )
+        
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_refresh_token_workflow(self, client):
+        """Test complete refresh token workflow."""
+        # 1. Get initial token
+        token_response = client.post(
+            "/auth/token",
+            json={
+                "grant_type": "client_credentials",
+                "client_id": "pipol_client",
+                "client_secret": "pipol_secret_2024"
+            }
+        )
+        
+        token_data = token_response.json()
+        original_access = token_data["access_token"]
+        refresh_token = token_data["refresh_token"]
+        
+        # 2. Use refresh token to get new access token
+        refresh_response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": "pipol_client"
+            }
+        )
+        
+        assert refresh_response.status_code == status.HTTP_200_OK
+        new_token_data = refresh_response.json()
+        new_access = new_token_data["access_token"]
+        new_refresh = new_token_data["refresh_token"]
+        
+        # 3. Verify we got new tokens
+        assert new_access != original_access
+        assert new_refresh != refresh_token
+        
+        # 4. Verify new access token works with GraphQL
+        graphql_response = client.post(
+            "/graphql",
+            headers={"Authorization": f"Bearer {new_access}"},
+            json={"query": "{ stats { totalRecords } }"}
+        )
+        assert graphql_response.status_code == status.HTTP_200_OK
+        
+        # 5. Verify old refresh token is revoked (should fail)
+        old_refresh_response = client.post(
+            "/auth/refresh",
+            json={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,  # Old token
+                "client_id": "pipol_client"
+            }
+        )
+        assert old_refresh_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
 class TestGraphQLEndpoint:
     """Test cases for GraphQL endpoint."""
 
