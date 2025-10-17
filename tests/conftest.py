@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 
@@ -19,8 +20,8 @@ def auth_token(client):
         json={
             "grant_type": "client_credentials",
             "client_id": "pipol_client",
-            "client_secret": "pipol_secret_2024"
-        }
+            "client_secret": "pipol_secret_2024",
+        },
     )
     return response.json()["access_token"]
 
@@ -29,4 +30,3 @@ def auth_token(client):
 def auth_headers(auth_token):
     """Get authentication headers with valid token."""
     return {"Authorization": f"Bearer {auth_token}"}
-

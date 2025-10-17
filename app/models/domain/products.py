@@ -1,6 +1,7 @@
 """Product data models."""
 
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -33,6 +34,7 @@ class ProductData(BaseModel):
 
     class Config:
         """Pydantic configuration."""
+
         json_schema_extra = {
             "example": {
                 "id_tie_fecha_valor": "20240129",
@@ -40,7 +42,7 @@ class ProductData(BaseModel):
                 "desc_ga_sku_producto": "K1010148001",
                 "desc_ga_nombre_producto_1": "TERMO CLÁSICO STANLEY 950 ML",
                 "desc_ga_marca_producto": "STANLEY",
-                "fc_agregado_carrito_cant": 1
+                "fc_agregado_carrito_cant": 1,
             }
         }
 
@@ -58,11 +60,5 @@ class ProductDataFilter(BaseModel):
 
     class Config:
         """Pydantic configuration."""
-        json_schema_extra = {
-            "example": {
-                "brand": "STANLEY",
-                "limit": 10,
-                "offset": 0
-            }
-        }
 
+        json_schema_extra = {"example": {"brand": "STANLEY", "limit": 10, "offset": 0}}

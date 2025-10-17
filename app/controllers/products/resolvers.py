@@ -1,11 +1,16 @@
 """GraphQL query resolvers."""
 
-import strawberry
 import logging
 from typing import List, Optional
-from app.models.graphql.product_types import ProductDataType, ProductFilterInput, StatsType
+
+import strawberry
+
+from app.models.graphql.product_types import (
+    ProductDataType,
+    ProductFilterInput,
+    StatsType,
+)
 from app.services.products_service import products_service
-from app.models.domain.products import ProductDataFilter
 
 logger = logging.getLogger(__name__)
 
@@ -44,18 +49,14 @@ class Query:
     """Root GraphQL Query type."""
 
     @strawberry.field(description="Get all product data with pagination")
-    def products(
-        self,
-        limit: int = 100,
-        offset: int = 0
-    ) -> List[ProductDataType]:
+    def products(self, limit: int = 100, offset: int = 0) -> List[ProductDataType]:
         """
         Get all products with pagination.
-        
+
         Args:
             limit: Maximum number of records to return (default: 100)
             offset: Number of records to skip (default: 0)
-        
+
         Returns:
             List of product data records
         """
@@ -68,23 +69,20 @@ class Query:
             return []
 
     @strawberry.field(description="Search and filter product data")
-    def search_products(
-        self,
-        filter: Optional[ProductFilterInput] = None
-    ) -> List[ProductDataType]:
+    def search_products(self, filter: Optional[ProductFilterInput] = None) -> List[ProductDataType]:
         """
         Search products with filters.
-        
+
         Args:
             filter: Filter parameters (date, brand, category, etc.)
-        
+
         Returns:
             List of filtered product data records
         """
         try:
             if filter is None:
                 filter = ProductFilterInput()
-            
+
             # Use service to build filter with validation
             model_filter = products_service.build_filter(
                 date=filter.date,
@@ -93,9 +91,9 @@ class Query:
                 sku=filter.sku,
                 category=filter.category,
                 limit=filter.limit or 100,
-                offset=filter.offset or 0
+                offset=filter.offset or 0,
             )
-            
+
             products = products_service.search_products(model_filter)
             return [product_data_to_graphql(p) for p in products]
         except Exception as e:
@@ -107,7 +105,7 @@ class Query:
     def brands(self) -> List[str]:
         """
         Get list of all unique brands.
-        
+
         Returns:
             List of brand names
         """
@@ -117,7 +115,7 @@ class Query:
     def categories(self) -> List[str]:
         """
         Get list of all unique categories.
-        
+
         Returns:
             List of category names
         """
@@ -127,15 +125,14 @@ class Query:
     def stats(self) -> StatsType:
         """
         Get statistics about the dataset.
-        
+
         Returns:
             Statistics including total records, brands, and categories
         """
         stats_data = products_service.get_dataset_statistics()
-        
+
         return StatsType(
             total_records=stats_data["total_records"],
             brands_count=stats_data["brands_count"],
-            categories_count=stats_data["categories_count"]
+            categories_count=stats_data["categories_count"],
         )
-
