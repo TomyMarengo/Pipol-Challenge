@@ -77,9 +77,9 @@ class Query:
 
             products = products_service.search_products(model_filter)
             return [product_data_to_graphql(p) for p in products]
-        except Exception as e:
-            # Log the error and return empty list rather than crashing
-            logger.error(f"Error searching products: {str(e)}", exc_info=True)
+        except (ValueError, TypeError, KeyError, IOError) as e:
+            # Log the error and return empty list rather than crashing GraphQL query
+            logger.error("Error searching products: %s", str(e), exc_info=True)
             return []
 
     @strawberry.field(description="Get available brands")
