@@ -117,10 +117,26 @@ app.include_router(graphql_router, tags=["GraphQL Data Service"])
 
 @app.get("/", tags=["Health"])
 async def root():
-    """Health check endpoint."""
+    """Health check endpoint - Shows the 3 required services."""
     return {
         "status": "ok",
-        "message": "Pipol Challenge API is running",
+        "message": "Pipol Challenge API - 3 Services Implementation",
         "version": "1.0.0",
-        "endpoints": {"graphql": "/graphql", "docs": "/docs", "auth": "/auth/token"},
+        "services": {
+            "data_service": {
+                "name": "Data Service", 
+                "endpoint": "/graphql",
+                "description": "GraphQL API for CSV data access"
+            },
+            "auth_service": {
+                "name": "Auth Service",
+                "endpoints": ["/auth/token", "/auth/refresh"], 
+                "description": "OAuth 2.0 client credentials with JWT"
+            },
+            "docs_service": {
+                "name": "Docs Service",
+                "endpoints": ["/docs", "/redoc", "/openapi.json"],
+                "description": "Swagger/OpenAPI 3.0 documentation"
+            }
+        }
     }
