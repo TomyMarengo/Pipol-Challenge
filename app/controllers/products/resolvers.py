@@ -49,13 +49,17 @@ class Query:
     """Root GraphQL Query type."""
 
     @strawberry.field(description="Search and filter product data (or get all products if no filter)")
-    def search_products(self, filters: Optional[ProductFilterInput] = None) -> List[ProductDataType]:
+    def search_products(
+        self, 
+        filters: Optional[ProductFilterInput] = strawberry.argument(default=None, name="filter")
+    ) -> List[ProductDataType]:
         """
         Search products with filters, or get all products if no filter provided.
 
         Args:
             filters: Optional filter parameters (date, brand, category, limit, offset, etc.)
                     If None, returns all products with default pagination.
+                    (GraphQL clients use 'filter' due to strawberry.argument mapping)
 
         Returns:
             List of product data records (filtered or all)
