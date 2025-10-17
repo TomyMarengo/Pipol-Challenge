@@ -1,0 +1,54 @@
+###
+# Quick Test Suite - Pipol Challenge API
+# Instructions:
+# 1. Start server: docker-compose up -d
+# 2. Run test #1 to get token
+# 3. Copy the access_token from response
+# 4. Replace YOUR_TOKEN_HERE in test #3 with the actual token
+# 5. Run the rest of the tests
+###
+
+### 1. 🔐 GET AUTH TOKEN
+POST http://localhost:8000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "pipol_client",
+  "client_secret": "pipol_secret_2024"
+}
+
+### 2. ❌ TEST WITHOUT AUTH (should fail)
+POST http://localhost:8000/graphql
+Content-Type: application/json
+
+{
+  "query": "{ stats { totalRecords } }"
+}
+
+### 3. ✅ TEST WITH AUTH (replace YOUR_TOKEN_HERE)
+POST http://localhost:8000/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ stats { totalRecords brandsCount categoriesCount } }"
+}
+
+### 4. 📊 GET SAMPLE PRODUCTS
+POST http://localhost:8000/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ products(limit: 3) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }"
+}
+
+### 5. 🔍 SEARCH BY BRAND
+POST http://localhost:8000/graphql
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "query": "{ searchProducts(filter: { brand: \"STANLEY\", limit: 2 }) { descGaNombreProducto1 descGaMarcaProducto } }"
+}
