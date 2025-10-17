@@ -26,16 +26,16 @@ router = APIRouter(prefix="/auth", tags=["OAuth2 Authentication"])
     summary="Get access token",
     description="""
     OAuth 2.0 Client Credentials Flow endpoint.
-    
+
     This endpoint implements the OAuth 2.0 client credentials grant type to obtain
     an access token. The token is a JWT that must be included in the Authorization
     header as a Bearer token for authenticated requests to the GraphQL endpoint.
-    
+
     **Steps to use:**
     1. Send a POST request with your client_id and client_secret
     2. Receive a JWT access token
     3. Use the token in GraphQL requests: `Authorization: Bearer <token>`
-    
+
     **Default credentials for testing:**
     - client_id: `pipol_client`
     - client_secret: `pipol_secret_2024`
@@ -72,13 +72,13 @@ async def get_token(request: TokenRequest):
     )
 
     # Create refresh token
-    refresh_token = auth_service.create_refresh_token(request.client_id)
+    new_refresh_token = auth_service.create_refresh_token(request.client_id)
 
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        refresh_token=refresh_token,
+        refresh_token=new_refresh_token,
         refresh_expires_in=settings.REFRESH_TOKEN_EXPIRE_DAYS
         * 24
         * 60
@@ -96,15 +96,15 @@ async def get_token(request: TokenRequest):
     summary="Refresh access token",
     description="""
     Refresh Token Flow endpoint.
-    
+
     This endpoint allows clients to obtain a new access token using a valid refresh token
     without having to re-authenticate with client credentials.
-    
+
     **Steps to use:**
     1. Use a valid refresh token from a previous token response
     2. Send a POST request with grant_type='refresh_token'
     3. Receive a new access token (and new refresh token)
-    
+
     **Note:** The old refresh token becomes invalid after use.
     """,
 )
@@ -120,7 +120,8 @@ async def refresh_token(request: RefreshTokenRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
                 "error": "unsupported_grant_type",
-                "error_description": "Only 'refresh_token' grant type is supported for this endpoint",
+                "error_description": "Only 'refresh_token' grant \
+                type is supported for this endpoint",
             },
         )
 
