@@ -49,24 +49,6 @@ class ProductRepository:
                 raise Exception(f"Error loading CSV file: {str(e)}") from e
         return self._df
 
-    def _clean_record(self, record: dict) -> dict:
-        """Clean a single record by converting NaN and problematic values to None."""
-        import math
-
-        cleaned = {}
-        for key, value in record.items():
-            # Handle NaN, inf, and None values
-            if value is None:
-                cleaned[key] = None
-            elif isinstance(value, float):
-                if math.isnan(value) or math.isinf(value):
-                    cleaned[key] = None
-                else:
-                    cleaned[key] = value
-            else:
-                cleaned[key] = value
-        return cleaned
-
     def get_all(self, limit: int = 100, offset: int = 0) -> List[ProductData]:
         """
         Get all product records with pagination.
@@ -86,8 +68,8 @@ class ProductRepository:
         # Convert to list of dictionaries
         records = paginated_df.to_dict("records")
 
-        # Clean records and convert to ProductData objects
-        return [ProductData(**self._clean_record(record)) for record in records]
+        # Convert to ProductData objects (no cleaning needed - handled in _load_data)
+        return [ProductData(**record) for record in records]
 
     def get_by_filter(self, filter_params: ProductDataFilter) -> List[ProductData]:
         """
@@ -131,8 +113,8 @@ class ProductRepository:
         # Convert to list of dictionaries
         records = paginated_df.to_dict("records")
 
-        # Clean records and convert to ProductData objects
-        return [ProductData(**self._clean_record(record)) for record in records]
+        # Convert to ProductData objects (no cleaning needed - handled in _load_data)
+        return [ProductData(**record) for record in records]
 
     def count(self) -> int:
         """Get total count of records."""
