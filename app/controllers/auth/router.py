@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, status
 from datetime import timedelta
-from app.models.auth import TokenRequest, TokenResponse, ErrorResponse
+from app.models.domain.auth import TokenRequest, TokenResponse, ErrorResponse
 from app.services.auth_service import auth_service
 from app.core.config import settings
 

@@ -2,9 +2,8 @@
 
 import strawberry
 from strawberry.fastapi import GraphQLRouter
-from typing import Optional
 from fastapi import Depends
-from app.api.graphql.resolvers import Query
+from app.controllers.products.resolvers import Query
 from app.core.dependencies import get_current_user
 
 

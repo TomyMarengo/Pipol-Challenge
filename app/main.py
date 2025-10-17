@@ -3,8 +3,8 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.graphql.router import graphql_router
-from app.api.auth.router import router as auth_router
+from app.controllers.products.router import graphql_router
+from app.controllers.auth.router import router as auth_router
 
 # Configure logging
 logging.basicConfig(

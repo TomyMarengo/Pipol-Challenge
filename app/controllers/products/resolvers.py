@@ -3,9 +3,9 @@
 import strawberry
 import logging
 from typing import List, Optional
-from app.api.graphql.types import ProductDataType, ProductFilterInput, StatsType
+from app.models.graphql.product_types import ProductDataType, ProductFilterInput, StatsType
 from app.repositories.product_repository import product_repository
-from app.models.product_data import ProductDataFilter
+from app.models.domain.products import ProductDataFilter
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@
 import pandas as pd
 from typing import List, Optional
 from pathlib import Path
-from app.models.product_data import ProductData, ProductDataFilter
+from app.models.domain.products import ProductData, ProductDataFilter
 from app.core.config import settings
 
 

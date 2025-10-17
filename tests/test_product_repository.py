@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import Mock, patch
 import pandas as pd
 from app.repositories.product_repository import ProductRepository
-from app.models.product_data import ProductDataFilter
+from app.models.domain.products import ProductDataFilter
 
 
 class TestProductRepository:
