@@ -20,62 +20,23 @@ A comprehensive API built with FastAPI featuring GraphQL data access, OAuth 2.0 
 This project implements **3 services with 3+ endpoints** as required by the backend programming challenge:
 
 ### **📊 Service 1: Data Service**
-- **Endpoint**: `POST /graphql` 
+
+- **Endpoint**: `POST /graphql`
 - **Purpose**: GraphQL API for querying product analytics data from CSV file (25,864 records)
 - **Features**: Pagination, filtering, statistics, brands/categories listing
 - **Authentication**: Required (JWT Bearer token)
 
-### **🔐 Service 2: Auth Service** 
+### **🔐 Service 2: Auth Service**
+
 - **Endpoints**: `POST /auth/token`, `POST /auth/refresh`
 - **Purpose**: OAuth 2.0 client credentials flow with JWT token generation
 - **Features**: Access tokens, refresh tokens, secure authentication
 
 ### **📚 Service 3: Docs Service**
-- **Endpoints**: `GET /docs`, `GET /redoc`, `GET /openapi.json`  
+
+- **Endpoints**: `GET /docs`, `GET /redoc`, `GET /openapi.json`
 - **Purpose**: Interactive API documentation with Swagger/OpenAPI 3.0
 - **Features**: Interactive testing, request examples, schema definitions
-
-**Data Source**: CSV file contains product analytics data with 244 unique brands and 384 categories.
-
-## ✅ Assessment Requirements Fulfilled
-
-This API fulfills all backend programming challenge requirements:
-
-- ✅ **3 Services**: Data, Auth, Docs services implemented  
-- ✅ **CSV Data Access**: GraphQL endpoint connects to provided CSV file
-- ✅ **OAuth 2.0 + JWT**: Client credentials flow with Bearer token authentication
-- ✅ **Swagger Documentation**: OpenAPI 3.0 with interactive examples  
-- ✅ **Docker Implementation**: Fully containerized with docker-compose
-- ✅ **Git Repository**: Incremental commits showing development process
-- ✅ **Comprehensive README**: Setup, usage, and API documentation
-- ✅ **AI Development**: Built using Claude AI assistance
-
-## ✨ Features
-
-### Data Service (GraphQL)
-
-- ✅ GraphQL endpoint at `/graphql`
-- ✅ Query products with pagination
-- ✅ Advanced filtering (by date, brand, category, SKU, client)
-- ✅ Get dataset statistics
-- ✅ List available brands and categories
-- ✅ Protected with JWT authentication
-- ✅ Interactive GraphQL Playground
-
-### Auth Service (OAuth 2.0)
-
-- ✅ OAuth 2.0 Client Credentials flow
-- ✅ JWT token generation and validation
-- ✅ Refresh token support
-- ✅ Endpoints: `/auth/token`, `/auth/refresh`
-- ✅ Secure token-based authentication
-
-### Docs Service (Swagger)
-
-- ✅ Interactive Swagger UI at `/docs`
-- ✅ ReDoc documentation at `/redoc`
-- ✅ OpenAPI 3.0 specification
-- ✅ Comprehensive examples and descriptions
 
 ## 🏗️ Architecture
 
@@ -105,8 +66,8 @@ app/
 1. **Clone the repository:**
 
    ```bash
-   git clone <your-repository-url>
-   cd pipol-challenge
+   git clone https://github.com/TomyMarengo/Pipol-Challenge
+   cd Pipol-Challenge
    ```
 
 2. **Ensure data.csv is in the project root**
@@ -123,8 +84,8 @@ The API will be available at `http://localhost:8000`
 1. **Clone the repository:**
 
    ```bash
-   git clone <your-repository-url>
-   cd pipol-challenge
+   git clone https://github.com/TomyMarengo/Pipol-Challenge
+   cd Pipol-Challenge
    ```
 
 2. **Create a virtual environment:**
@@ -300,89 +261,6 @@ query {
   categories
 }
 ```
-
-### 3. Complete Workflow Example
-
-**Step 1: Get Token**
-
-```bash
-TOKEN=$(curl -s -X POST "http://localhost:8000/auth/token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "client_credentials",
-    "client_id": "pipol_client",
-    "client_secret": "pipol_secret_2024"
-  }' | jq -r '.access_token')
-
-echo $TOKEN
-```
-
-**Step 2: Query GraphQL**
-
-```bash
-curl -X POST "http://localhost:8000/graphql" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "{ stats { totalRecords brandsCount categoriesCount } }"
-  }' | jq
-```
-
-## 📁 Project Structure
-
-```
-pipol-challenge/
-├── app/
-│   ├── controllers/
-│   │   ├── auth/
-│   │   │   ├── __init__.py
-│   │   │   └── router.py          # OAuth2 endpoints
-│   │   └── products/
-│   │       ├── __init__.py
-│   │       ├── resolvers.py       # GraphQL query resolvers
-│   │       └── router.py          # GraphQL router config
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py              # App configuration
-│   │   └── dependencies.py        # FastAPI dependencies
-│   ├── models/
-│   │   ├── domain/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py            # Auth models
-│   │   │   └── products.py        # Product data models
-│   │   └── graphql/
-│   │       ├── __init__.py
-│   │       └── product_types.py   # GraphQL type definitions
-│   ├── repositories/
-│   │   ├── __init__.py
-│   │   └── product_repository.py  # CSV data access
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── auth_service.py        # JWT token service
-│   │   └── products_service.py    # Product business logic
-│   ├── __init__.py
-│   └── main.py                    # FastAPI application
-├── tests/                         # Unit and integration tests
-├── data.csv                       # Product data
-├── api-tests.http                 # HTTP test requests
-├── pyproject.toml                 # Linting configuration
-├── pytest.ini                     # Test configuration
-├── .env                           # Environment variables
-├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
-
-## 🔐 Default Credentials
-
-For testing purposes, the following credentials are configured:
-
-- **Client ID**: `pipol_client`
-- **Client Secret**: `pipol_secret_2024`
-
-⚠️ **Security Note**: In production, use strong, unique credentials and store them securely using environment variables or secrets management systems.
 
 ## 🔧 Configuration
 
