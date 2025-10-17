@@ -196,7 +196,7 @@ curl -X POST "http://localhost:8000/graphql" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "{ products(limit: 5) { desc_ga_nombre_producto_1 desc_ga_marca_producto fc_agregado_carrito_cant } }"
+    "query": "{ searchProducts(filter: { limit: 5 }) { desc_ga_nombre_producto_1 desc_ga_marca_producto fc_agregado_carrito_cant } }"
   }'
 ```
 
@@ -214,7 +214,7 @@ curl -X POST "http://localhost:8000/graphql" \
 **Query all products:**
 ```graphql
 query {
-  products(limit: 10, offset: 0) {
+  searchProducts(filter: { limit: 10, offset: 0 }) {
     desc_ga_nombre_producto_1
     desc_ga_marca_producto
     desc_categoria_prod_principal

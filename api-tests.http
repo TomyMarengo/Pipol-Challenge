@@ -191,7 +191,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query GetProducts($limit: Int!, $offset: Int!) { products(limit: $limit, offset: $offset) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
+  "query": "query GetProducts($limit: Int!, $offset: Int!) { searchProducts(filter: { limit: $limit, offset: $offset }) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
   "variables": {
     "limit": 5,
     "offset": 0
@@ -204,7 +204,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ products(limit: 3, offset: 3) { descGaNombreProducto1 descGaMarcaProducto } }"
+  "query": "{ searchProducts(filter: { limit: 3, offset: 3 }) { descGaNombreProducto1 descGaMarcaProducto } }"
 }
 
 ### 22. GRAPHQL - SEARCH BY BRAND (STANLEY)
@@ -288,7 +288,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query ComplexQuery { stats { totalRecords brandsCount categoriesCount } products(limit: 2) { idTieFechaValor idCliCliente descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal fcAgregadoCarritoCant fcIngresoProductoMonto } }"
+  "query": "query ComplexQuery { stats { totalRecords brandsCount categoriesCount } searchProducts(filter: { limit: 2 }) { idTieFechaValor idCliCliente descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal fcAgregadoCarritoCant fcIngresoProductoMonto } }"
 }
 
 ### 28. GRAPHQL - ADVANCED FILTERING (Multiple criteria)
@@ -414,7 +414,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ products(limit: 1000, offset: 0) { descGaNombreProducto1 } }"
+  "query": "{ searchProducts(filter: { limit: 1000, offset: 0 }) { descGaNombreProducto1 } }"
 }
 
 ### 37. GRAPHQL - High Offset (Test large datasets)
@@ -423,7 +423,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ products(limit: 10, offset: 25000) { descGaNombreProducto1 } }"
+  "query": "{ searchProducts(filter: { limit: 10, offset: 25000 }) { descGaNombreProducto1 } }"
 }
 
 ###

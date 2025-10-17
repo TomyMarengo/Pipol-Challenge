@@ -48,50 +48,31 @@ def product_data_to_graphql(product_data) -> ProductDataType:
 class Query:
     """Root GraphQL Query type."""
 
-    @strawberry.field(description="Get all product data with pagination")
-    def products(self, limit: int = 100, offset: int = 0) -> List[ProductDataType]:
+    @strawberry.field(description="Search and filter product data (or get all products if no filter)")
+    def search_products(self, filters: Optional[ProductFilterInput] = None) -> List[ProductDataType]:
         """
-        Get all products with pagination.
+        Search products with filters, or get all products if no filter provided.
 
         Args:
-            limit: Maximum number of records to return (default: 100)
-            offset: Number of records to skip (default: 0)
+            filters: Optional filter parameters (date, brand, category, limit, offset, etc.)
+                    If None, returns all products with default pagination.
 
         Returns:
-            List of product data records
+            List of product data records (filtered or all)
         """
         try:
-            products = products_service.get_all_products(limit=limit, offset=offset)
-            return [product_data_to_graphql(p) for p in products]
-        except Exception as e:
-            # Log the error and return empty list rather than crashing
-            logger.error(f"Error fetching products: {str(e)}", exc_info=True)
-            return []
-
-    @strawberry.field(description="Search and filter product data")
-    def search_products(self, filter: Optional[ProductFilterInput] = None) -> List[ProductDataType]:
-        """
-        Search products with filters.
-
-        Args:
-            filter: Filter parameters (date, brand, category, etc.)
-
-        Returns:
-            List of filtered product data records
-        """
-        try:
-            if filter is None:
-                filter = ProductFilterInput()
+            if filters is None:
+                filters = ProductFilterInput()
 
             # Use service to build filter with validation
             model_filter = products_service.build_filter(
-                date=filter.date,
-                client_id=filter.client_id,
-                brand=filter.brand,
-                sku=filter.sku,
-                category=filter.category,
-                limit=filter.limit or 100,
-                offset=filter.offset or 0,
+                date=filters.date,
+                client_id=filters.client_id,
+                brand=filters.brand,
+                sku=filters.sku,
+                category=filters.category,
+                limit=filters.limit or 100,
+                offset=filters.offset or 0,
             )
 
             products = products_service.search_products(model_filter)

@@ -255,7 +255,7 @@ class TestGraphQLEndpoint:
             json={
                 "query": """
                     query {
-                        products(limit: 5, offset: 0) {
+                        searchProducts(filter: { limit: 5, offset: 0 }) {
                             descGaNombreProducto1
                             descGaMarcaProducto
                         }
