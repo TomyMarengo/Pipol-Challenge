@@ -14,10 +14,6 @@ from app.services.products_service import products_service
 
 logger = logging.getLogger(__name__)
 
-# Define the filter argument at module level to avoid function call in defaults
-filter_argument = strawberry.argument(default=None, name="filter")
-
-
 def product_data_to_graphql(product_data) -> ProductDataType:
     """Convert ProductData model to GraphQL type."""
     return ProductDataType(
@@ -51,10 +47,8 @@ def product_data_to_graphql(product_data) -> ProductDataType:
 class Query:
     """Root GraphQL Query type."""
 
-    @strawberry.field(
-        description="Search and filter product data (or get all products if no filter)"
-    )
-    def search_products(self, filters: Optional[ProductFilterInput] = filter_argument) -> List[ProductDataType]:
+    @strawberry.field(description="Search and filter product data (or get all products if no filter)")
+    def search_products(self, filters: Optional[ProductFilterInput] = None) -> List[ProductDataType]:
         """
         Search products with filters, or get all products if no filter provided.
 

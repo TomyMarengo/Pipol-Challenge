@@ -255,7 +255,7 @@ class TestGraphQLEndpoint:
             json={
                 "query": """
                     query {
-                        searchProducts(filter: { limit: 5, offset: 0 }) {
+                        searchProducts(filters: { limit: 5, offset: 0 }) {
                             descGaNombreProducto1
                             descGaMarcaProducto
                         }
@@ -267,8 +267,8 @@ class TestGraphQLEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "data" in data
-        assert "products" in data["data"]
-        assert isinstance(data["data"]["products"], list)
+        assert "searchProducts" in data["data"]
+        assert isinstance(data["data"]["searchProducts"], list)
 
     def test_graphql_search_products_query(self, client, auth_headers):
         """Test GraphQL search products with filter."""
@@ -278,7 +278,7 @@ class TestGraphQLEndpoint:
             json={
                 "query": """
                     query {
-                        searchProducts(filter: { limit: 5 }) {
+                        searchProducts(filters: { limit: 5 }) {
                             descGaNombreProducto1
                             descGaMarcaProducto
                         }

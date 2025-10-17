@@ -28,6 +28,7 @@ This project implements three main services as part of a backend programming cha
 ## ✨ Features
 
 ### Data Service (GraphQL)
+
 - ✅ GraphQL endpoint at `/graphql`
 - ✅ Query products with pagination
 - ✅ Advanced filtering (by date, brand, category, SKU, client)
@@ -37,6 +38,7 @@ This project implements three main services as part of a backend programming cha
 - ✅ Interactive GraphQL Playground
 
 ### Auth Service (OAuth 2.0)
+
 - ✅ OAuth 2.0 Client Credentials flow
 - ✅ JWT token generation and validation
 - ✅ Refresh token support
@@ -44,6 +46,7 @@ This project implements three main services as part of a backend programming cha
 - ✅ Secure token-based authentication
 
 ### Docs Service (Swagger)
+
 - ✅ Interactive Swagger UI at `/docs`
 - ✅ ReDoc documentation at `/redoc`
 - ✅ OpenAPI 3.0 specification
@@ -75,6 +78,7 @@ app/
 ### Option 1: Using Docker (Recommended)
 
 1. **Clone the repository:**
+
    ```bash
    git clone <your-repository-url>
    cd pipol-challenge
@@ -92,28 +96,32 @@ The API will be available at `http://localhost:8000`
 ### Option 2: Local Development
 
 1. **Clone the repository:**
+
    ```bash
    git clone <your-repository-url>
    cd pipol-challenge
    ```
 
 2. **Create a virtual environment:**
+
    ```bash
    python -m venv venv
-   
+
    # On Windows
    venv\Scripts\activate
-   
+
    # On macOS/Linux
    source venv/bin/activate
    ```
 
 3. **Install dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Create .env file** (or use the existing one):
+
    ```bash
    cp .env.example .env
    ```
@@ -167,6 +175,7 @@ Once the application is running, access the documentation at:
 ### 1. Get an Access Token
 
 **Using cURL:**
+
 ```bash
 curl -X POST "http://localhost:8000/auth/token" \
   -H "Content-Type: application/json" \
@@ -178,6 +187,7 @@ curl -X POST "http://localhost:8000/auth/token" \
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -191,18 +201,20 @@ curl -X POST "http://localhost:8000/auth/token" \
 ### 2. Query GraphQL Endpoint
 
 **Using cURL:**
+
 ```bash
 curl -X POST "http://localhost:8000/graphql" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "{ searchProducts(filter: { limit: 5 }) { desc_ga_nombre_producto_1 desc_ga_marca_producto fc_agregado_carrito_cant } }"
+    "query": "{ searchProducts(filters: { limit: 5 }) { desc_ga_nombre_producto_1 desc_ga_marca_producto fc_agregado_carrito_cant } }"
   }'
 ```
 
 **Using GraphQL Playground** (http://localhost:8000/graphql):
 
 1. First, add your token to HTTP Headers:
+
 ```json
 {
   "Authorization": "Bearer YOUR_TOKEN_HERE"
@@ -212,9 +224,10 @@ curl -X POST "http://localhost:8000/graphql" \
 2. Then run queries:
 
 **Query all products:**
+
 ```graphql
 query {
-  searchProducts(filter: { limit: 10, offset: 0 }) {
+  searchProducts(filters: { limit: 10, offset: 0 }) {
     desc_ga_nombre_producto_1
     desc_ga_marca_producto
     desc_categoria_prod_principal
@@ -224,12 +237,10 @@ query {
 ```
 
 **Search with filters:**
+
 ```graphql
 query {
-  searchProducts(filter: {
-    brand: "STANLEY"
-    limit: 5
-  }) {
+  searchProducts(filters: { brand: "STANLEY", limit: 5 }) {
     desc_ga_nombre_producto_1
     desc_ga_marca_producto
     fc_agregado_carrito_cant
@@ -238,6 +249,7 @@ query {
 ```
 
 **Get statistics:**
+
 ```graphql
 query {
   stats {
@@ -249,6 +261,7 @@ query {
 ```
 
 **Get available brands:**
+
 ```graphql
 query {
   brands
@@ -256,6 +269,7 @@ query {
 ```
 
 **Get available categories:**
+
 ```graphql
 query {
   categories
@@ -265,6 +279,7 @@ query {
 ### 3. Complete Workflow Example
 
 **Step 1: Get Token**
+
 ```bash
 TOKEN=$(curl -s -X POST "http://localhost:8000/auth/token" \
   -H "Content-Type: application/json" \
@@ -278,6 +293,7 @@ echo $TOKEN
 ```
 
 **Step 2: Query GraphQL**
+
 ```bash
 curl -X POST "http://localhost:8000/graphql" \
   -H "Authorization: Bearer $TOKEN" \

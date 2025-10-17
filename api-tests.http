@@ -191,7 +191,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query GetProducts($limit: Int!, $offset: Int!) { searchProducts(filter: { limit: $limit, offset: $offset }) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
+  "query": "query GetProducts($limit: Int!, $offset: Int!) { searchProducts(filters: { limit: $limit, offset: $offset }) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
   "variables": {
     "limit": 5,
     "offset": 0
@@ -204,7 +204,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ searchProducts(filter: { limit: 3, offset: 3 }) { descGaNombreProducto1 descGaMarcaProducto } }"
+  "query": "{ searchProducts(filters: { limit: 3, offset: 3 }) { descGaNombreProducto1 descGaMarcaProducto } }"
 }
 
 ### 22. GRAPHQL - SEARCH BY BRAND (STANLEY)
@@ -213,7 +213,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchByBrand($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
+  "query": "query SearchByBrand($filter: ProductFilterInput) { searchProducts(filters: $filter) { descGaNombreProducto1 descGaMarcaProducto fcAgregadoCarritoCant } }",
   "variables": {
     "filter": {
       "brand": "STANLEY",
@@ -228,7 +228,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchByCategory($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
+  "query": "query SearchByCategory($filter: ProductFilterInput) { searchProducts(filters: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
   "variables": {
     "filter": {
       "category": "CAMPING",
@@ -243,7 +243,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchByDate($filter: ProductFilterInput) { searchProducts(filter: $filter) { idTieFechaValor descGaNombreProducto1 descGaMarcaProducto } }",
+  "query": "query SearchByDate($filter: ProductFilterInput) { searchProducts(filters: $filter) { idTieFechaValor descGaNombreProducto1 descGaMarcaProducto } }",
   "variables": {
     "filter": {
       "date": "20240129",
@@ -258,7 +258,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchBySku($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto } }",
+  "query": "query SearchBySku($filter: ProductFilterInput) { searchProducts(filters: $filter) { descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto } }",
   "variables": {
     "filter": {
       "sku": "K1010148001",
@@ -273,7 +273,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query SearchByClient($filter: ProductFilterInput) { searchProducts(filter: $filter) { idCliCliente descGaNombreProducto1 } }",
+  "query": "query SearchByClient($filter: ProductFilterInput) { searchProducts(filters: $filter) { idCliCliente descGaNombreProducto1 } }",
   "variables": {
     "filter": {
       "client_id": 8,
@@ -288,7 +288,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query ComplexQuery { stats { totalRecords brandsCount categoriesCount } searchProducts(filter: { limit: 2 }) { idTieFechaValor idCliCliente descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal fcAgregadoCarritoCant fcIngresoProductoMonto } }"
+  "query": "query ComplexQuery { stats { totalRecords brandsCount categoriesCount } searchProducts(filters: { limit: 2 }) { idTieFechaValor idCliCliente descGaSkuProducto descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal fcAgregadoCarritoCant fcIngresoProductoMonto } }"
 }
 
 ### 28. GRAPHQL - ADVANCED FILTERING (Multiple criteria)
@@ -297,7 +297,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "query AdvancedSearch($filter: ProductFilterInput) { searchProducts(filter: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
+  "query": "query AdvancedSearch($filter: ProductFilterInput) { searchProducts(filters: $filter) { descGaNombreProducto1 descGaMarcaProducto descCategoriaProdPrincipal } }",
   "variables": {
     "filter": {
       "brand": "STANLEY",
@@ -314,7 +314,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ searchProducts(filter: { brand: \"NONEXISTENT_BRAND\" }) { descGaNombreProducto1 } }"
+  "query": "{ searchProducts(filters: { brand: \"NONEXISTENT_BRAND\" }) { descGaNombreProducto1 } }"
 }
 
 ### 30. GRAPHQL - INVALID QUERY (Should return GraphQL error)
@@ -414,7 +414,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ searchProducts(filter: { limit: 1000, offset: 0 }) { descGaNombreProducto1 } }"
+  "query": "{ searchProducts(filters: { limit: 1000, offset: 0 }) { descGaNombreProducto1 } }"
 }
 
 ### 37. GRAPHQL - High Offset (Test large datasets)
@@ -423,7 +423,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE
 
 {
-  "query": "{ searchProducts(filter: { limit: 10, offset: 25000 }) { descGaNombreProducto1 } }"
+  "query": "{ searchProducts(filters: { limit: 10, offset: 25000 }) { descGaNombreProducto1 } }"
 }
 
 ###

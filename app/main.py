@@ -60,7 +60,7 @@ This API provides access to product analytics data from a CSV file through multi
    ```graphql
    # Get products with pagination
    query {
-     searchProducts(filter: { limit: 10, offset: 0 }) {
+     searchProducts(filters: { limit: 10, offset: 0 }) {
        desc_ga_nombre_producto_1
        desc_ga_marca_producto
        fc_agregado_carrito_cant
@@ -69,7 +69,7 @@ This API provides access to product analytics data from a CSV file through multi
    
    # Search with filters
    query {
-     searchProducts(filter: { brand: "STANLEY", limit: 5 }) {
+     searchProducts(filters: { brand: "STANLEY", limit: 5 }) {
        desc_ga_nombre_producto_1
        desc_ga_marca_producto
      }
