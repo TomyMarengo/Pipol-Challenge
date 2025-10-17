@@ -18,7 +18,7 @@ class ProductRepository:
         self._df: Optional[pd.DataFrame] = None
 
     def _load_data(self) -> pd.DataFrame:
-        """Load CSV data into pandas DataFrame efficiently."""
+        """Load CSV data into pandas DataFrame."""
         if self._df is None:
             try:
                 # Define numeric columns upfront
@@ -29,24 +29,24 @@ class ProductRepository:
                     "fc_detalle_producto_cant", "fc_producto_cant", 
                     "fc_visualizaciones_pag_cant", "flag_pipol", "id_ga_producto"
                 ]
-                
+
                 # Read CSV once with proper NaN handling
                 self._df = pd.read_csv(
                     self.csv_path, 
                     na_values=['', 'nan', 'NaN', 'null'], 
                     keep_default_na=True
                 )
-                
+
                 # Convert numeric columns efficiently (vectorized)
                 for col in numeric_columns:
                     if col in self._df.columns:
                         self._df[col] = pd.to_numeric(self._df[col], errors='coerce')
-                
+
                 # Single operation to replace all NaN values with None for Pydantic
                 self._df = self._df.where(pd.notnull(self._df), None)
-                
+
             except Exception as e:
-                raise Exception(f"Error loading CSV file: {str(e)}")
+                raise Exception(f"Error loading CSV file: {str(e)}") from e
         return self._df
 
     def _clean_record(self, record: dict) -> dict:
