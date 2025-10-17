@@ -18,38 +18,33 @@ class ProductRepository:
         self._df: Optional[pd.DataFrame] = None
 
     def _load_data(self) -> pd.DataFrame:
-        """Load CSV data into pandas DataFrame."""
+        """Load CSV data into pandas DataFrame efficiently."""
         if self._df is None:
             try:
-                # Read CSV with all columns as strings initially to preserve data types
-                self._df = pd.read_csv(self.csv_path, dtype=str, keep_default_na=False)
-
-                # Convert specific numeric columns - handle empty/nan values
+                # Define numeric columns upfront
                 numeric_columns = [
-                    "id_cli_cliente",
-                    "id_ga_vista",
-                    "id_ga_tipo_dispositivo",
-                    "id_ga_fuente_medio",
-                    "fc_agregado_carrito_cant",
-                    "fc_ingreso_producto_monto",
-                    "fc_retirado_carrito_cant",
-                    "fc_detalle_producto_cant",
-                    "fc_producto_cant",
-                    "fc_visualizaciones_pag_cant",
-                    "flag_pipol",
-                    "id_ga_producto",
+                    "id_cli_cliente", "id_ga_vista", "id_ga_tipo_dispositivo", 
+                    "id_ga_fuente_medio", "fc_agregado_carrito_cant", 
+                    "fc_ingreso_producto_monto", "fc_retirado_carrito_cant", 
+                    "fc_detalle_producto_cant", "fc_producto_cant", 
+                    "fc_visualizaciones_pag_cant", "flag_pipol", "id_ga_producto"
                 ]
-
+                
+                # Read CSV once with proper NaN handling
+                self._df = pd.read_csv(
+                    self.csv_path, 
+                    na_values=['', 'nan', 'NaN', 'null'], 
+                    keep_default_na=True
+                )
+                
+                # Convert numeric columns efficiently (vectorized)
                 for col in numeric_columns:
                     if col in self._df.columns:
-                        # Replace empty strings with NaN, then convert to numeric
-                        self._df[col] = self._df[col].replace("", pd.NA)
-                        self._df[col] = pd.to_numeric(self._df[col], errors="coerce")
-
-                # Replace ALL NaN/NA values with None for proper Pydantic validation
-                self._df = self._df.fillna(value=pd.NA)
-                self._df = self._df.replace({pd.NA: None, pd.NaT: None, float("nan"): None})
-                self._df = self._df.replace("", None)
+                        self._df[col] = pd.to_numeric(self._df[col], errors='coerce')
+                
+                # Single operation to replace all NaN values with None for Pydantic
+                self._df = self._df.where(pd.notnull(self._df), None)
+                
             except Exception as e:
                 raise Exception(f"Error loading CSV file: {str(e)}")
         return self._df
